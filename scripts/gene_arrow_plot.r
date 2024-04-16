@@ -59,11 +59,13 @@ dir_bias$dummy_x_end <- shrunken_segments$end
 
 head(dir_bias)
 
-get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05) {
+get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05, absolute_cutoff = 0.9) {
 
     get_aux_arrow_plot <- function(how = NULL) {
-        
-        arrow_data <- example_genes
+    
+
+        arrow_data <- example_genes %>%
+            filter(!is.na(ratio_dir))
         aux <- ggplot()
 
         if (how == "in_dir") {
@@ -75,7 +77,8 @@ get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05) {
                     xend = dummy_x_end_aux, 
                     y = 1, 
                     yend = 1, 
-                    linewidth = ratio_dir), arrow = arrow(length = unit(arrow_length, "inches")), show.legend = FALSE)
+                    linewidth = ratio_dir,
+                    alpha = ratio_dir), arrow = arrow(length = unit(arrow_length, "inches")), show.legend = TRUE)
         } else if (how == "reverse_dir") {
             arrow_data <- arrow_data %>% 
                 mutate(ratio_dir = 1-ratio_dir)
@@ -86,7 +89,8 @@ get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05) {
                     xend = dummy_x_start_aux, 
                     y = 1, 
                     yend = 1, 
-                    linewidth = ratio_dir), arrow = arrow(length = unit(arrow_length, "inches")), show.legend = FALSE)                
+                    linewidth = ratio_dir,
+                    alpha = ratio_dir), arrow = arrow(length = unit(arrow_length, "inches")), show.legend = FALSE)                
         } else {
             stop("how must be either 'in_dir' or 'reverse_dir'")
         }
@@ -103,6 +107,7 @@ get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05) {
                 axis.ticks.length.x = unit(0, "pt"),
                 plot.margin = unit(c(0,0,0,0), "cm")) +
         scale_linewidth_continuous(range = c(0, 1.25)) +
+        scale_alpha_continuous(range = c(0, 1)) +
         scale_x_continuous(limits = c(xmin, xmax)) +
         NULL
     }
@@ -148,7 +153,7 @@ get_gene_plot <- function(s, m, xstart, xend, arrow_length = 0.05) {
         plot_spacer() +
         gene_plot + 
         
-        plot_layout(ncol = 1, heights = c(0.5, 0, 0.5, 0, 1)) +  plot_annotation(theme = theme(plot.margin = margin())))
+        plot_layout(ncol = 1, heights = c(0.5, 0, 0.5, 0, 2), guides = 'collect') +  plot_annotation(theme = theme(plot.margin = margin())))
 }
 
 gene_plot <- get_gene_plot(
@@ -157,4 +162,4 @@ gene_plot <- get_gene_plot(
     xstart = 1, 
     xend = 500)
 
-ggsave(plot = gene_plot, filename = "../results/gene_plot.pdf", width = 10, height = 2)
+ggsave(plot = gene_plot, filename = "../results/gene_plot.pdf", width = 10, height = 0.8)
